@@ -2,6 +2,35 @@
 
 All notable changes to `laravel-request-analytics` will be documented in this file.
 
+## v1.9.0 - 2026-05-10
+
+### What's Changed
+
+* build(deps): bump actions/checkout from 5 to 6 by @dependabot[bot] in https://github.com/me-shaon/laravel-request-analytics/pull/69
+* feat: Enhance calendar filter with preset auto-detection and timezone fixes by @Naimul007A in https://github.com/me-shaon/laravel-request-analytics/pull/68
+* refactor: improve select input style and add calendar icon by @alaminfirdows in https://github.com/me-shaon/laravel-request-analytics/pull/71
+* build(deps): bump dependabot/fetch-metadata from 2.4.0 to 2.5.0 by @dependabot[bot] in https://github.com/me-shaon/laravel-request-analytics/pull/75
+* File name changed from broswers to browsers by @JimNewaz in https://github.com/me-shaon/laravel-request-analytics/pull/74
+* build(deps): bump ramsey/composer-install from 3 to 4 by @dependabot[bot] in https://github.com/me-shaon/laravel-request-analytics/pull/77
+* Fix TypeError in AnalyticsService::getUniqueVisitorCount by @kodedjackson in https://github.com/me-shaon/laravel-request-analytics/pull/76
+* feat: add support for laravel 13 and PHP 8.5 by @iz-ahmad in https://github.com/me-shaon/laravel-request-analytics/pull/79
+* build(deps): bump dependabot/fetch-metadata from 2.5.0 to 3.0.0 by @dependabot[bot] in https://github.com/me-shaon/laravel-request-analytics/pull/78
+* fix test failure: update github actions run-tests script by @iz-ahmad in https://github.com/me-shaon/laravel-request-analytics/pull/80
+* feat: add dark theme support to the analytics dashboard (from PR #72, resolving merge conflicts) by @iz-ahmad in https://github.com/me-shaon/laravel-request-analytics/pull/81
+* Dark theme support to the analytics dashboard by @JimNewaz in https://github.com/me-shaon/laravel-request-analytics/pull/72
+* docs: enhance README with a “What You Get” section by @iz-ahmad in https://github.com/me-shaon/laravel-request-analytics/pull/82
+* build(deps): bump dependabot/fetch-metadata from 3.0.0 to 3.1.0 by @dependabot[bot] in https://github.com/me-shaon/laravel-request-analytics/pull/83
+
+### New Contributors
+
+* @Naimul007A made their first contribution in https://github.com/me-shaon/laravel-request-analytics/pull/68
+* @alaminfirdows made their first contribution in https://github.com/me-shaon/laravel-request-analytics/pull/71
+* @JimNewaz made their first contribution in https://github.com/me-shaon/laravel-request-analytics/pull/74
+* @kodedjackson made their first contribution in https://github.com/me-shaon/laravel-request-analytics/pull/76
+* @iz-ahmad made their first contribution in https://github.com/me-shaon/laravel-request-analytics/pull/79
+
+**Full Changelog**: https://github.com/me-shaon/laravel-request-analytics/compare/v1.8.0...v1.9.0
+
 ## v1.8.0 - 2025-10-19
 
 ### What's Changed
