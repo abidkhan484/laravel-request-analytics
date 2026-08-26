@@ -20,7 +20,11 @@ class RequestAnalyticsServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasRoutes(['web', 'api'])
             ->hasAssets()
-            ->hasMigrations(['create_request_analytics_table', 'add_indexes_to_request_analytics_table'])
+            ->hasMigrations([
+                'create_request_analytics_table',
+                'add_indexes_to_request_analytics_table',
+                'change_referrer_page_title_path_columns_to_text',
+            ])
             ->hasInstallCommand(function (InstallCommand $command): void {
                 $command
                     ->startWith(function (InstallCommand $command): void {
