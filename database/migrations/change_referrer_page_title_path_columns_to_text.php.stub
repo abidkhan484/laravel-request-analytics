@@ -18,15 +18,12 @@ return new class extends Migration
             'pgsql' => $db->statement(
                 "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"path\" TYPE TEXT, ALTER COLUMN \"page_title\" TYPE TEXT, ALTER COLUMN \"referrer\" TYPE TEXT"
             ),
-            // SQLite uses dynamic typing: VARCHAR and TEXT columns are already
-            // stored and compared identically, with no enforced length limit.
             default => null,
         };
     }
 
     public function down()
     {
-        // Intentionally a no-op: reverting to VARCHAR(255) could truncate or
-        // reject rows that already hold values longer than 255 characters.
+        // no-op
     }
 };

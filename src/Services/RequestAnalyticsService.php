@@ -11,9 +11,7 @@ class RequestAnalyticsService
 {
     private const DEFAULT_MAX_STRING_LENGTH = 1000;
 
-    // mb_substr() truncates by character count, but MySQL's TEXT capacity (65,535) is a byte
-    // limit. Under utf8mb4 (up to 4 bytes/char), only ~16,383 characters are guaranteed to fit
-    // regardless of content, so the ceiling is capped there rather than at the raw byte count.
+    // MySQL's TEXT capacity (65,535) is a byte limit; under utf8mb4, only ~16,383 chars are guaranteed to fit
     private const MAX_STRING_LENGTH_CEILING = 16000;
 
     public function store(RequestDataDTO $requestDataDTO)
