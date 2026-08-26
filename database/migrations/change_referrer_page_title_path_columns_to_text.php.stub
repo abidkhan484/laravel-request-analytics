@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        $tableName = config('request-analytics.database.table', 'request_analytics');
+        $connection = config('request-analytics.database.connection');
+        $db = DB::connection($connection);
+
+        match ($db->getDriverName()) {
+            'mysql' => $db->statement(
+                "ALTER TABLE `{$tableName}` MODIFY `path` TEXT NOT NULL, MODIFY `page_title` TEXT NULL, MODIFY `referrer` TEXT NULL"
+            ),
+            'pgsql' => $db->statement(
+                "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"path\" TYPE TEXT, ALTER COLUMN \"page_title\" TYPE TEXT, ALTER COLUMN \"referrer\" TYPE TEXT"
+            ),
+            // SQLite uses dynamic typing: VARCHAR and TEXT columns are already
+            // stored and compared identically, with no enforced length limit.
+            default => null,
+        };
+    }
+
+    public function down()
+    {
+        // Intentionally a no-op: reverting to VARCHAR(255) could truncate or
+        // reject rows that already hold values longer than 255 characters.
+    }
+};
