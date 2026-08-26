@@ -9,6 +9,13 @@ use MeShaon\RequestAnalytics\Models\RequestAnalytics;
 
 class RequestAnalyticsService
 {
+    private const DEFAULT_MAX_STRING_LENGTH = 1000;
+
+    // mb_substr() truncates by character count, but MySQL's TEXT capacity (65,535) is a byte
+    // limit. Under utf8mb4 (up to 4 bytes/char), only ~16,383 characters are guaranteed to fit
+    // regardless of content, so the ceiling is capped there rather than at the raw byte count.
+    private const MAX_STRING_LENGTH_CEILING = 16000;
+
     public function store(RequestDataDTO $requestDataDTO)
     {
         $requestData = [
@@ -55,10 +62,10 @@ class RequestAnalyticsService
 
     private function truncate(string $value): string
     {
-        $maxLength = (int) config('request-analytics.database.max_string_length', 255);
+        $maxLength = (int) config('request-analytics.database.max_string_length', self::DEFAULT_MAX_STRING_LENGTH);
 
-        if ($maxLength <= 0) {
-            $maxLength = 255;
+        if ($maxLength <= 0 || $maxLength > self::MAX_STRING_LENGTH_CEILING) {
+            $maxLength = self::DEFAULT_MAX_STRING_LENGTH;
         }
 
         return mb_substr($value, 0, $maxLength);
