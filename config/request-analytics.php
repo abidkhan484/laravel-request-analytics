@@ -4,7 +4,11 @@ return [
     'database' => [
         'connection' => env('REQUEST_ANALYTICS_DB_CONNECTION', null), // Use default connection if null
         'table' => env('REQUEST_ANALYTICS_TABLE_NAME', 'request_analytics'),
-        'max_string_length' => env('REQUEST_ANALYTICS_MAX_STRING_LENGTH', 255),
+        // path, page_title, and referrer are TEXT columns; values longer than this are
+        // truncated before storing. Must be between 1 and 16000 (a safe character count for
+        // MySQL's 65,535-byte TEXT capacity under multi-byte content) — values outside that
+        // range fall back to the 1000 default.
+        'max_string_length' => env('REQUEST_ANALYTICS_MAX_STRING_LENGTH', 1000),
     ],
 
     'route' => [
