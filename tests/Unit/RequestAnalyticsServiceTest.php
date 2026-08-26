@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use MeShaon\RequestAnalytics\DTO\RequestDataDTO;
 use MeShaon\RequestAnalytics\Services\RequestAnalyticsService;
 use MeShaon\RequestAnalytics\Tests\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
 class RequestAnalyticsServiceTest extends TestCase
@@ -23,9 +24,9 @@ class RequestAnalyticsServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_truncates_a_referrer_longer_than_the_column_limit(): void
+    public function it_truncates_a_referrer_longer_than_the_default_max_length(): void
     {
-        $longReferrer = 'https://example.com/?q='.str_repeat('a', 300);
+        $longReferrer = 'https://example.com/?q='.str_repeat('a', 1100);
 
         $dto = new RequestDataDTO(
             path: 'blog/post',
@@ -46,14 +47,14 @@ class RequestAnalyticsServiceTest extends TestCase
 
         $record = $this->service->store($dto);
 
-        $this->assertSame(255, strlen($record->referrer));
-        $this->assertSame(mb_substr($longReferrer, 0, 255), $record->referrer);
+        $this->assertSame(1000, strlen($record->referrer));
+        $this->assertSame(mb_substr($longReferrer, 0, 1000), $record->referrer);
     }
 
     #[Test]
-    public function it_truncates_a_page_title_longer_than_the_column_limit(): void
+    public function it_truncates_a_page_title_longer_than_the_default_max_length(): void
     {
-        $longTitle = str_repeat('T', 300);
+        $longTitle = str_repeat('T', 1100);
 
         $dto = new RequestDataDTO(
             path: 'blog/post',
@@ -74,14 +75,14 @@ class RequestAnalyticsServiceTest extends TestCase
 
         $record = $this->service->store($dto);
 
-        $this->assertSame(255, strlen($record->page_title));
-        $this->assertSame(mb_substr($longTitle, 0, 255), $record->page_title);
+        $this->assertSame(1000, strlen($record->page_title));
+        $this->assertSame(mb_substr($longTitle, 0, 1000), $record->page_title);
     }
 
     #[Test]
-    public function it_truncates_a_path_longer_than_the_column_limit(): void
+    public function it_truncates_a_path_longer_than_the_default_max_length(): void
     {
-        $longPath = str_repeat('a', 300);
+        $longPath = str_repeat('a', 1100);
 
         $dto = new RequestDataDTO(
             path: $longPath,
@@ -102,8 +103,8 @@ class RequestAnalyticsServiceTest extends TestCase
 
         $record = $this->service->store($dto);
 
-        $this->assertSame(255, strlen($record->path));
-        $this->assertSame(mb_substr($longPath, 0, 255), $record->path);
+        $this->assertSame(1000, strlen($record->path));
+        $this->assertSame(mb_substr($longPath, 0, 1000), $record->path);
     }
 
     #[Test]
@@ -134,9 +135,9 @@ class RequestAnalyticsServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_truncates_multibyte_referrer_without_breaking_characters(): void
+    public function it_truncates_multibyte_page_title_without_breaking_characters(): void
     {
-        $longMultibyteTitle = str_repeat('あ', 300);
+        $longMultibyteTitle = str_repeat('あ', 1100);
 
         $dto = new RequestDataDTO(
             path: 'blog/post',
@@ -157,7 +158,7 @@ class RequestAnalyticsServiceTest extends TestCase
 
         $record = $this->service->store($dto);
 
-        $this->assertSame(255, mb_strlen($record->page_title));
+        $this->assertSame(1000, mb_strlen($record->page_title));
         $this->assertTrue(mb_check_encoding($record->page_title, 'UTF-8'));
     }
 
@@ -190,31 +191,94 @@ class RequestAnalyticsServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_falls_back_to_the_default_when_max_string_length_is_misconfigured(): void
+    #[DataProvider('misconfiguredMaxStringLengthProvider')]
+    public function it_falls_back_to_the_default_when_max_string_length_is_misconfigured(string|int $invalidValue): void
     {
-        foreach (['', 0, -5, 'not-a-number'] as $invalidValue) {
-            config()->set('request-analytics.database.max_string_length', $invalidValue);
+        config()->set('request-analytics.database.max_string_length', $invalidValue);
 
-            $dto = new RequestDataDTO(
-                path: str_repeat('a', 300),
-                content: '<html></html>',
-                browserInfo: ['operating_system' => 'Linux', 'browser' => 'Chrome', 'device' => 'Desktop'],
-                ipAddress: '127.0.0.1',
-                referrer: '',
-                country: 'US',
-                city: 'NYC',
-                language: 'en-US',
-                queryParams: '[]',
-                httpMethod: 'GET',
-                responseTime: 0.1,
-                requestCategory: 'web',
-                sessionId: 'session_invalid_'.$invalidValue,
-                visitorId: 'visitor_invalid'
-            );
+        $dto = new RequestDataDTO(
+            path: str_repeat('a', 1100),
+            content: '<html></html>',
+            browserInfo: ['operating_system' => 'Linux', 'browser' => 'Chrome', 'device' => 'Desktop'],
+            ipAddress: '127.0.0.1',
+            referrer: '',
+            country: 'US',
+            city: 'NYC',
+            language: 'en-US',
+            queryParams: '[]',
+            httpMethod: 'GET',
+            responseTime: 0.1,
+            requestCategory: 'web',
+            sessionId: 'session_invalid',
+            visitorId: 'visitor_invalid'
+        );
 
-            $record = $this->service->store($dto);
+        $record = $this->service->store($dto);
 
-            $this->assertSame(255, strlen($record->path));
-        }
+        $this->assertSame(1000, strlen($record->path));
+    }
+
+    public static function misconfiguredMaxStringLengthProvider(): array
+    {
+        return [
+            'empty string' => [''],
+            'zero' => [0],
+            'negative' => [-5],
+            'non-numeric' => ['not-a-number'],
+        ];
+    }
+
+    #[Test]
+    public function it_accepts_max_string_length_at_the_text_ceiling(): void
+    {
+        config()->set('request-analytics.database.max_string_length', 16000);
+
+        $dto = new RequestDataDTO(
+            path: str_repeat('a', 16100),
+            content: '<html></html>',
+            browserInfo: ['operating_system' => 'Linux', 'browser' => 'Chrome', 'device' => 'Desktop'],
+            ipAddress: '127.0.0.1',
+            referrer: '',
+            country: 'US',
+            city: 'NYC',
+            language: 'en-US',
+            queryParams: '[]',
+            httpMethod: 'GET',
+            responseTime: 0.1,
+            requestCategory: 'web',
+            sessionId: 'session_7',
+            visitorId: 'visitor_7'
+        );
+
+        $record = $this->service->store($dto);
+
+        $this->assertSame(16000, strlen($record->path));
+    }
+
+    #[Test]
+    public function it_falls_back_to_the_default_just_above_the_text_ceiling(): void
+    {
+        config()->set('request-analytics.database.max_string_length', 16001);
+
+        $dto = new RequestDataDTO(
+            path: str_repeat('a', 16100),
+            content: '<html></html>',
+            browserInfo: ['operating_system' => 'Linux', 'browser' => 'Chrome', 'device' => 'Desktop'],
+            ipAddress: '127.0.0.1',
+            referrer: '',
+            country: 'US',
+            city: 'NYC',
+            language: 'en-US',
+            queryParams: '[]',
+            httpMethod: 'GET',
+            responseTime: 0.1,
+            requestCategory: 'web',
+            sessionId: 'session_8',
+            visitorId: 'visitor_8'
+        );
+
+        $record = $this->service->store($dto);
+
+        $this->assertSame(1000, strlen($record->path));
     }
 }
