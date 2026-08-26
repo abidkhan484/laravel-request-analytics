@@ -12,14 +12,14 @@ class RequestAnalyticsService
     public function store(RequestDataDTO $requestDataDTO)
     {
         $requestData = [
-            'path' => $requestDataDTO->path,
-            'page_title' => $this->extractPageTitle($requestDataDTO->content),
+            'path' => $this->truncate($requestDataDTO->path),
+            'page_title' => $this->truncate($this->extractPageTitle($requestDataDTO->content)),
             'ip_address' => $requestDataDTO->ipAddress,
             'operating_system' => $requestDataDTO->browserInfo['operating_system'],
             'browser' => $requestDataDTO->browserInfo['browser'],
             'device' => $requestDataDTO->browserInfo['device'],
             'screen' => '',
-            'referrer' => $requestDataDTO->referrer,
+            'referrer' => $this->truncate($requestDataDTO->referrer),
             'country' => $requestDataDTO->country,
             'city' => $requestDataDTO->city,
             'language' => $requestDataDTO->language,
@@ -51,5 +51,16 @@ class RequestAnalyticsService
         preg_match('/<title>(.*?)<\/title>/i', $content, $matches);
 
         return $matches[1] ?? '';
+    }
+
+    private function truncate(string $value): string
+    {
+        $maxLength = (int) config('request-analytics.database.max_string_length', 255);
+
+        if ($maxLength <= 0) {
+            $maxLength = 255;
+        }
+
+        return mb_substr($value, 0, $maxLength);
     }
 }
