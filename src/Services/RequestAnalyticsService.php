@@ -9,17 +9,22 @@ use MeShaon\RequestAnalytics\Models\RequestAnalytics;
 
 class RequestAnalyticsService
 {
+    private const DEFAULT_MAX_STRING_LENGTH = 1000;
+
+    // MySQL's TEXT capacity (65,535) is a byte limit; under utf8mb4, only ~16,383 chars are guaranteed to fit
+    private const MAX_STRING_LENGTH_CEILING = 16000;
+
     public function store(RequestDataDTO $requestDataDTO)
     {
         $requestData = [
-            'path' => $requestDataDTO->path,
-            'page_title' => $this->extractPageTitle($requestDataDTO->content),
+            'path' => $this->truncate($requestDataDTO->path),
+            'page_title' => $this->truncate($this->extractPageTitle($requestDataDTO->content)),
             'ip_address' => $requestDataDTO->ipAddress,
             'operating_system' => $requestDataDTO->browserInfo['operating_system'],
             'browser' => $requestDataDTO->browserInfo['browser'],
             'device' => $requestDataDTO->browserInfo['device'],
             'screen' => '',
-            'referrer' => $requestDataDTO->referrer,
+            'referrer' => $this->truncate($requestDataDTO->referrer),
             'country' => $requestDataDTO->country,
             'city' => $requestDataDTO->city,
             'language' => $requestDataDTO->language,
@@ -51,5 +56,16 @@ class RequestAnalyticsService
         preg_match('/<title>(.*?)<\/title>/i', $content, $matches);
 
         return $matches[1] ?? '';
+    }
+
+    private function truncate(string $value): string
+    {
+        $maxLength = (int) config('request-analytics.database.max_string_length', self::DEFAULT_MAX_STRING_LENGTH);
+
+        if ($maxLength <= 0 || $maxLength > self::MAX_STRING_LENGTH_CEILING) {
+            $maxLength = self::DEFAULT_MAX_STRING_LENGTH;
+        }
+
+        return mb_substr($value, 0, $maxLength);
     }
 }

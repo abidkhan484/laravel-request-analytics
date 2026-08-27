@@ -84,14 +84,14 @@ class TestCase extends Orchestra
         if (! Schema::hasTable('request_analytics')) {
             Schema::create('request_analytics', function (Blueprint $table): void {
                 $table->id();
-                $table->string('path');
-                $table->string('page_title')->nullable();
+                $table->text('path');
+                $table->text('page_title')->nullable();
                 $table->string('ip_address');
                 $table->string('operating_system')->nullable();
                 $table->string('browser')->nullable();
                 $table->string('device')->nullable();
                 $table->string('screen')->nullable();
-                $table->string('referrer')->nullable();
+                $table->text('referrer')->nullable();
                 $table->string('country')->nullable();
                 $table->string('city')->nullable();
                 $table->string('language')->nullable();

@@ -81,6 +81,10 @@ return [
     'database' => [
         'connection' => env('REQUEST_ANALYTICS_DB_CONNECTION', null), // Use default connection if null
         'table' => env('REQUEST_ANALYTICS_TABLE_NAME', 'request_analytics'),
+
+        // Str values (path, page_title, referrer etc.) longer than this will be truncated before storing
+        // Must be between 1 and 16000. values outside that range fall back to the default 1000.
+        'max_string_length' => env('REQUEST_ANALYTICS_MAX_STRING_LENGTH', 1000),
     ],
 
     'route' => [
